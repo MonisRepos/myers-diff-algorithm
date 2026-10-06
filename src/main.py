@@ -271,6 +271,76 @@ def backtrack(a, b, trace, final_d):
 
 
 # ============================================================
+# Part A - Line diff formatting
+# ============================================================
+
+def format_line_diff(operations):
+    """
+    Convert Myers operations into the required Part A format.
+
+    Prefix:
+        ' ' = unchanged line
+        '-' = deleted line
+        '+' = inserted line
+
+    Within each change block, all deleted lines must appear
+    before all inserted lines.
+    """
+
+    output = []
+
+    i = 0
+
+    while i < len(operations):
+
+        operation, value = operations[i]
+
+        # ----------------------------------------------------
+        # Unchanged line
+        # ----------------------------------------------------
+
+        if operation == "equal":
+
+            output.append(b" " + value + b"\n")
+
+            i += 1
+            continue
+
+        # ----------------------------------------------------
+        # Change block
+        #
+        # Collect all consecutive deletions and insertions.
+        # ----------------------------------------------------
+
+        deletes = []
+        inserts = []
+
+        while i < len(operations) and operations[i][0] != "equal":
+
+            operation, value = operations[i]
+
+            if operation == "delete":
+                deletes.append(value)
+
+            else:
+                inserts.append(value)
+
+            i += 1
+
+        # ----------------------------------------------------
+        # Assignment requires deletions before insertions.
+        # ----------------------------------------------------
+
+        for value in deletes:
+            output.append(b"-" + value + b"\n")
+
+        for value in inserts:
+            output.append(b"+" + value + b"\n")
+
+    return output
+
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -290,8 +360,10 @@ def main():
 
     operations = myers_diff(old_lines, new_lines)
 
-    for operation, value in operations:
-        print(operation, value)
+    output = format_line_diff(operations)
+
+    # Print the formatted diff.
+    sys.stdout.buffer.write(b"".join(output))
 
     return 0
 
