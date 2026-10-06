@@ -535,7 +535,9 @@ def build_highlight_output(operations):
 
         # Keep line
         if operations[i][0] == "equal":
-            output.append(" " + operations[i][1])
+            output.append(
+                " " + operations[i][1].decode("utf-8")
+            )
             i += 1
             continue
 
@@ -555,19 +557,24 @@ def build_highlight_output(operations):
 
         # Print all deleted lines first
         for line in deleted:
-            output.append("-" + line)
+            output.append("-" + line.decode("utf-8"))
 
         # Pair deleted and inserted lines
         pair_count = min(len(deleted), len(inserted))
 
         for j in range(len(inserted)):
-            output.append("+" + inserted[j])
+
+            # Print inserted line
+            output.append(
+                "+" + inserted[j].decode("utf-8")
+            )
 
             # Add '?' only when this inserted line has a pair
             if j < pair_count:
+
                 old_ranges, new_ranges = changed_ranges(
-                    deleted[j],
-                    inserted[j]
+                    deleted[j].decode("utf-8"),
+                    inserted[j].decode("utf-8")
                 )
 
                 output.append(
@@ -578,6 +585,41 @@ def build_highlight_output(operations):
                 )
 
     return output
+
+# ============================================================
+# Command handlers
+# ============================================================
+
+def run_highlight(path_a, path_b):
+    """
+    Run Part B:
+    - Read both files as raw bytes.
+    - Compute the line-level Myers diff.
+    - Add character-level change ranges.
+    - Print the final highlighted diff.
+    """
+
+    # Read input files
+    a = read_bytes_lines(path_a)
+    b = read_bytes_lines(path_b)
+
+    # If either file cannot be read
+    if a is None or b is None:
+        print("Error: could not read input file", file=sys.stderr)
+        return 2
+
+    # Compute line-level diff
+    operations = myers_diff(a, b)
+
+    # Build Part B output
+    output = build_highlight_output(operations)
+
+    # Print every output line
+    for line in output:
+        print(line)
+
+    return 0
+
 
 # ============================================================
 # Main
@@ -604,20 +646,8 @@ def main():
     if command == "lines":
         return run_lines(path_a, path_b)
 
-    if command == "test-highlight":
-        operations = [
-            ("equal", "Hello"),
-            ("delete", "I like Python"),
-            ("insert", "I like Java"),
-            ("equal", "Goodbye")
-        ]
-
-        result = build_highlight_output(operations)
-
-        for line in result:
-            print(line)
-
-        return 0
+    if command == "highlight":
+        return run_highlight(sys.argv[2], sys.argv[3])
 
     print(
         "Error: command must be 'lines'",
