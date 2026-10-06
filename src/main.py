@@ -346,25 +346,21 @@ def format_line_diff(operations):
 
 def run_lines(path_a, path_b):
     """
-    Execute the Part A command:
+    Execute:
 
-        program lines A B
+        python src/main.py lines A B
 
-    Reads both files, computes the Myers diff, formats the
-    result, and writes it to stdout.
+    Read both files, calculate the Myers diff, format the
+    result, and write it to stdout.
     """
 
     old_lines = read_bytes_lines(path_a)
     new_lines = read_bytes_lines(path_b)
 
-    # --------------------------------------------------------
     # If either file cannot be read:
-    #
-    # - print nothing to stdout
-    # - print an error to stderr
+    # - stdout must remain empty
+    # - error goes to stderr
     # - return exit code 2
-    # --------------------------------------------------------
-
     if old_lines is None or new_lines is None:
 
         print(
@@ -374,27 +370,17 @@ def run_lines(path_a, path_b):
 
         return 2
 
-    # --------------------------------------------------------
-    # Find the shortest edit script.
-    # --------------------------------------------------------
-
+    # Calculate the shortest edit script.
     operations = myers_diff(old_lines, new_lines)
 
-    # --------------------------------------------------------
-    # Convert operations into Part A output.
-    # --------------------------------------------------------
-
+    # Convert the operations into Part A format.
     output = format_line_diff(operations)
 
-    # stdout must contain only the diff.
+    # Write only the diff to stdout.
     sys.stdout.buffer.write(b"".join(output))
 
     return 0
 
-
-# ============================================================
-# Main
-# ============================================================
 
 # ============================================================
 # Main
@@ -406,6 +392,7 @@ def main():
     #
     # python src/main.py lines A B
     #
+
     if len(sys.argv) != 4:
         print(
             "Usage: python src/main.py lines A B",
