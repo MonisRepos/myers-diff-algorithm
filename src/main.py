@@ -341,31 +341,91 @@ def format_line_diff(operations):
 
 
 # ============================================================
+# Part A - Command handler
+# ============================================================
+
+def run_lines(path_a, path_b):
+    """
+    Execute the Part A command:
+
+        program lines A B
+
+    Reads both files, computes the Myers diff, formats the
+    result, and writes it to stdout.
+    """
+
+    old_lines = read_bytes_lines(path_a)
+    new_lines = read_bytes_lines(path_b)
+
+    # --------------------------------------------------------
+    # If either file cannot be read:
+    #
+    # - print nothing to stdout
+    # - print an error to stderr
+    # - return exit code 2
+    # --------------------------------------------------------
+
+    if old_lines is None or new_lines is None:
+
+        print(
+            "Error: could not read input file",
+            file=sys.stderr
+        )
+
+        return 2
+
+    # --------------------------------------------------------
+    # Find the shortest edit script.
+    # --------------------------------------------------------
+
+    operations = myers_diff(old_lines, new_lines)
+
+    # --------------------------------------------------------
+    # Convert operations into Part A output.
+    # --------------------------------------------------------
+
+    output = format_line_diff(operations)
+
+    # stdout must contain only the diff.
+    sys.stdout.buffer.write(b"".join(output))
+
+    return 0
+
+
+# ============================================================
+# Main
+# ============================================================
+
+# ============================================================
 # Main
 # ============================================================
 
 def main():
 
+    # Expected:
+    #
+    # python src/main.py lines A B
+    #
     if len(sys.argv) != 4:
+        print(
+            "Usage: python src/main.py lines A B",
+            file=sys.stderr
+        )
         return 2
 
+    command = sys.argv[1]
     path_a = sys.argv[2]
     path_b = sys.argv[3]
 
-    old_lines = read_bytes_lines(path_a)
-    new_lines = read_bytes_lines(path_b)
+    if command == "lines":
+        return run_lines(path_a, path_b)
 
-    if old_lines is None or new_lines is None:
-        return 2
+    print(
+        "Error: command must be 'lines'",
+        file=sys.stderr
+    )
 
-    operations = myers_diff(old_lines, new_lines)
-
-    output = format_line_diff(operations)
-
-    # Print the formatted diff.
-    sys.stdout.buffer.write(b"".join(output))
-
-    return 0
+    return 2
 
 
 if __name__ == "__main__":
