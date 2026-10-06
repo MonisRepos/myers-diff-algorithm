@@ -486,6 +486,37 @@ def changed_ranges(old_line, new_line):
 
 
 # ============================================================
+# Part B - Range formatting
+# ============================================================
+
+def format_ranges(ranges):
+    """
+    Convert character ranges into the required output format.
+
+    Example:
+
+        [(7, 13), (15, 18)]
+
+    becomes:
+
+        7-13,15-18
+
+    If there are no changed characters:
+
+        .
+    """
+
+    # No changed ranges.
+    if not ranges:
+        return "."
+
+    # Convert every (start, end) pair into "start-end".
+    return ",".join(
+        f"{start}-{end}"
+        for start, end in ranges
+    )
+
+# ============================================================
 # Main
 # ============================================================
 
@@ -509,6 +540,14 @@ def main():
 
     if command == "lines":
         return run_lines(path_a, path_b)
+
+    if command == "test-range":
+
+        print(format_ranges([(7, 13)]))
+        print(format_ranges([(7, 13), (15, 18)]))
+        print(format_ranges([]))
+
+        return 0
 
     print(
         "Error: command must be 'lines'",
