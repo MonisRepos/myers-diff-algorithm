@@ -516,6 +516,69 @@ def format_ranges(ranges):
         for start, end in ranges
     )
 
+
+def build_highlight_output(operations):
+    """
+    Build Part B output.
+
+    For every changed block:
+    - Pair deleted and inserted lines in order.
+    - Print a '?' line for each pair.
+    - Unpaired lines do not get a '?' line.
+    """
+
+    output = []
+
+    i = 0
+
+    while i < len(operations):
+
+        # Keep line
+        if operations[i][0] == "equal":
+            output.append(" " + operations[i][1])
+            i += 1
+            continue
+
+        # Collect one consecutive change block
+        deleted = []
+        inserted = []
+
+        while i < len(operations) and operations[i][0] != "equal":
+            op, line = operations[i]
+
+            if op == "delete":
+                deleted.append(line)
+            else:
+                inserted.append(line)
+
+            i += 1
+
+        # Print all deleted lines first
+        for line in deleted:
+            output.append("-" + line)
+
+        # Pair deleted and inserted lines
+        pair_count = min(len(deleted), len(inserted))
+
+        for j in range(len(inserted)):
+            output.append("+" + inserted[j])
+
+            # Add '?' only when this inserted line has a pair
+            if j < pair_count:
+                old_ranges, new_ranges = changed_ranges(
+                    deleted[j],
+                    inserted[j]
+                )
+
+                output.append(
+                    "? "
+                    + format_ranges(old_ranges)
+                    + " | "
+                    + format_ranges(new_ranges)
+                )
+
+    return output
+
 # ============================================================
 # Main
 # ============================================================
@@ -541,11 +604,18 @@ def main():
     if command == "lines":
         return run_lines(path_a, path_b)
 
-    if command == "test-range":
+    if command == "test-highlight":
+        operations = [
+            ("equal", "Hello"),
+            ("delete", "I like Python"),
+            ("insert", "I like Java"),
+            ("equal", "Goodbye")
+        ]
 
-        print(format_ranges([(7, 13)]))
-        print(format_ranges([(7, 13), (15, 18)]))
-        print(format_ranges([]))
+        result = build_highlight_output(operations)
+
+        for line in result:
+            print(line)
 
         return 0
 
