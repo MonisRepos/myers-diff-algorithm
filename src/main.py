@@ -381,6 +381,109 @@ def run_lines(path_a, path_b):
 
     return 0
 
+# ============================================================
+# Part B - Character-level diff
+# ============================================================
+
+def changed_ranges(old_line, new_line):
+    """
+    Find the changed character ranges between two lines.
+
+    Myers diff is reused at the character level.
+
+    Each range is:
+        (start, end)
+
+    where:
+        start = inclusive
+        end   = exclusive
+    """
+
+    # Convert strings into lists of Unicode code points.
+    old_chars = list(old_line)
+    new_chars = list(new_line)
+
+    # Reuse Myers diff for the characters.
+    operations = myers_diff(old_chars, new_chars)
+
+    old_position = 0
+    new_position = 0
+
+    old_ranges = []
+    new_ranges = []
+
+    # Current range being built.
+    old_start = None
+    new_start = None
+
+    # --------------------------------------------------------
+    # Finish the current old-line range.
+    # --------------------------------------------------------
+
+    def finish_old_range():
+
+        nonlocal old_start
+
+        if old_start is not None:
+            old_ranges.append(
+                (old_start, old_position)
+            )
+
+            old_start = None
+
+    # --------------------------------------------------------
+    # Finish the current new-line range.
+    # --------------------------------------------------------
+
+    def finish_new_range():
+
+        nonlocal new_start
+
+        if new_start is not None:
+            new_ranges.append(
+                (new_start, new_position)
+            )
+
+            new_start = None
+
+    # --------------------------------------------------------
+    # Process character-level Myers operations.
+    # --------------------------------------------------------
+
+    for operation, value in operations:
+
+        if operation == "equal":
+
+            # Equal character means the current changed range
+            # has ended.
+            finish_old_range()
+            finish_new_range()
+
+            old_position += 1
+            new_position += 1
+
+        elif operation == "delete":
+
+            # Start an old-line changed range if necessary.
+            if old_start is None:
+                old_start = old_position
+
+            old_position += 1
+
+        elif operation == "insert":
+
+            # Start a new-line changed range if necessary.
+            if new_start is None:
+                new_start = new_position
+
+            new_position += 1
+
+    # Finish ranges that reach the end of the line.
+    finish_old_range()
+    finish_new_range()
+
+    return old_ranges, new_ranges
+
 
 # ============================================================
 # Main
